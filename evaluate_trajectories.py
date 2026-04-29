@@ -71,25 +71,48 @@ def evaluate_trajectory(trajectory: Trajectory, scorers: List[BaseScorer], dry_r
     return results
 
 
-def evaluate_trajectories(trajectories: Dict[str, Trajectory], 
+def evaluate_trajectories(trajectories: Dict[str, Trajectory],
                          scorer_names: List[str],
                          dry_run: bool = False,
                          parallelize: bool = True,
                          max_workers: int = 4,
+                         model: Optional[str] = None,
+                         model_overrides: Optional[Dict[str, str]] = None,
                          **scorer_kwargs) -> Dict[str, Dict[str, ScorerResult]]:
-    
+    """Evaluate trajectories using the specified scorers.
+
+    Args:
+        trajectories: Mapping of trajectory ID to Trajectory object.
+        scorer_names: Which scorers to run. Pass ``['default']`` for all scorers.
+        dry_run: Count tokens only, without making API calls.
+        parallelize: Run scorers concurrently across trajectories.
+        max_workers: Thread-pool size when *parallelize* is True.
+        model: Override the LLM model for **all** scorers. When omitted each
+            scorer uses its built-in default (Gemini models).
+        model_overrides: Per-scorer model overrides, e.g.
+            ``{"reasoning_quality": "claude-sonnet-4-6"}``. Takes precedence
+            over *model* for the named scorer.
+        **scorer_kwargs: Additional keyword arguments forwarded to every scorer
+            constructor (e.g. ``temperature``, ``max_tokens``).
+    """
     if not scorer_names or scorer_names == ['default']:
         scorer_names = ["reasoning_quality", "objective_quality", "navigation_path"]
 
-    models = {
+    default_models = {
         "reasoning_quality": "gemini-2.5-pro-exp-03-25",
         "objective_quality": "gemini-2.0-flash",
         "navigation_path": "no_model_needed",
     }
-    
+
     scorers = []
     for name in scorer_names:
-        scorer_kwargs['model'] = models[name]
+        if model_overrides and name in model_overrides:
+            resolved_model = model_overrides[name]
+        elif model:
+            resolved_model = model
+        else:
+            resolved_model = default_models[name]
+        scorer_kwargs['model'] = resolved_model
         scorer = get_scorer(name, **scorer_kwargs)
         scorers.append(scorer)
     

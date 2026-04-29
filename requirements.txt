@@ -1,0 +1,16 @@
+faiss-cpu
+numpy
+sentence-transformers
+tqdm
+pydantic
+spacy
+tiktoken
+python-dotenv
+litellm
+openai
+pandas
+plotly
+flask
+scikit-learn
+fastapi
+uvicorn[standard]

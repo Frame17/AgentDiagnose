@@ -1,5 +1,18 @@
 # AgentDiagnose: An Open Toolkit for Diagnosing LLM Agent Trajectories
 
+## Installation
+
+```bash
+python -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+python -m spacy download en_core_web_sm
+```
+
+For the web dashboard frontend:
+```bash
+cd dashboard && npm install
+```
+
 ## Usage
 
 AgentDiagnose provides two main ways to analyze agent trajectories:
